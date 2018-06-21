@@ -1,0 +1,61 @@
+#!/bin/bash
+
+SCRIPT=$(basename $0)
+
+BASETMPNAME='.vidcap.tmp'  # temp file for ffmpeg's use
+
+# Clean up when the program exits
+function cleanup {
+	rm -f ${BASETMPNAME}*
+}
+
+trap cleanup EXIT
+
+# Check command line usage
+
+if [ $# -le 1 ]; then
+	printf "usage: %s vidfile [ vidfile ... ] outfile\n" "$SCRIPT" 1>&2
+	exit 1
+fi
+
+
+# Make sure we have ffmpeg installed
+
+which -s ffmpeg
+
+if [ $? -ne 0 ]; then
+	printf "%s: fatal: cannot find ffmpeg\n" "$SCRIPT" 1>&2
+	exit 2
+fi
+
+# Build the temp file list that ffmpeg needs
+
+tmpfile="$BASETMPNAME.$$.txt"
+
+printf "" > $tmpfile
+
+while [ $# -gt 1 ]; do
+	printf "file '%s'\n" "$1" >> $tmpfile
+	shift
+done
+
+# Last argument is the outfile name
+
+outfile="$1"
+
+# Play hardball when it comes to overwriting files
+#
+# We need to make sure the user never leaves off the outfile name and
+# accidentally overwrites one of their input files.
+
+if [ -f $outfile ]; then
+	printf "%s: refusing to overwrite output file %s\n" "$SCRIPT" "$outfile" 1>&2
+	printf "%s: did you forget to specify your output file?\n" "$SCRIPT" 1>&2
+	printf "%s: if not, first remove the output file then re-run\n" "$SCRIPT" 1>&2
+	exit 3
+fi
+
+# If we get here, all's well. Go for it!
+
+ffmpeg -f concat -i "$tmpfile" -c copy "$outfile"
+
