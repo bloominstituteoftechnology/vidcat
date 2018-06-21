@@ -9,6 +9,10 @@ This simply copies the data and does not re-encode, so it's speedy
 ## Prereqs
 
 * ffmpeg
+  * Mac users can install with
+    ```
+    brew install ffmpeg
+    ```
 
 ## Install
 
@@ -70,3 +74,4 @@ vidcat zoom_1.mp4 zoom_3.mp4 outfile.mp4
 
 vidcat *.mp4 outfile.mp4
 ```
+
